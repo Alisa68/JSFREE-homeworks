@@ -1,28 +1,29 @@
 <template>
     <div id="app">
 
-        <app-header/>
+        <app-header :changeSearch="changeSearch"/>
+       
 
         <div class="container">
             <h1 class="pt-3 pb-3">Персонажи Marvel</h1>
         
 
-            <app-modal :character="characters[characterIndex]" />
-
+            <app-modal :character="character"/>
             <spinner v-if="loading"/>
-
-             <div class="row">
-
-        <div v-for="(el, idx) in characters"
-           :key="el.id"
-        class="card mb-3 col-sm-12 col-md-6 col-lg-4">
-            <div class="row g-0">
-                <div class="col-4">
-                    <img :src="el.thumbnail"
-                         :alt="el.name"
-                         style="max-width: 100%;"
-                    >
-                </div>
+            <div v-else class="row">
+                <h5 v-if="!searchCharacters.length">Ничего не найдено</h5>
+                <div v-else
+                     v-for="(el, idx) in searchCharacters"
+                     :key="el.id"
+                     class="card mb-3 col-sm-12 col-md-6 col-lg-4">
+                    <div class="row g-0">
+                        <div class="col-4">
+                            <img
+                                    style="max-width: 100%;"
+                                    :src="el.thumbnail"
+                                    :alt="el.name"
+                            >
+                        </div>
                 <div class="col-8">
                     <div class="card-body">
                         <h5 class="card-title">{{el.name}}</h5>
@@ -62,6 +63,7 @@
                 loading: false,
                 characters: [],
                 characterIndex: 0,
+                search: '',
             }
         },
         methods: { 
@@ -70,8 +72,21 @@
                        .then (res => res.json())
                        .then (json => this.characters = json);
            },
+           changeSearch: function (value) {
+                this.search = value
+           }
         },
-        computed: {},
+        computed: {
+            character: function () {
+                return this.searchCharacters[this.characterIndex] || null
+            },
+            searchCharacters: function () {
+                const {characters, search} = this;
+                return characters.filter((character) => {
+                    return character.name.toLowerCase().indexOf(search.toLowerCase()) !== -1
+                })
+            },
+        },
             async mounted() {
                 this.loading= true;
                 await this.fetchCharacters();
